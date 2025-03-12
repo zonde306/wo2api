@@ -111,6 +111,7 @@ async def send_message(
             assert response.status_code.is_success(), f"Unexpected status code: {response.status_code.as_int()}"
 
             is_reasoning = False
+            unfinished_chunk = b""
             async with response.stream() as streamer:
                 assert isinstance(streamer, rnet.Streamer)
                 async for chunk in streamer:
@@ -124,7 +125,14 @@ async def send_message(
                         continue
 
                     content = ""
-                    data : dict[str, str | int | None] = json.loads(chunk)
+                    chunk = unfinished_chunk + chunk
+                    try:
+                        data : dict[str, str | int | None] = json.loads(chunk)
+                    except json.decoder.JSONDecodeError:
+                        unfinished_chunk = chunk
+                        continue
+                    
+                    unfinished_chunk = b""
                     if data["reasoningContent"]:
                         if not is_reasoning:
                             is_reasoning = True
