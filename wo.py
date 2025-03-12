@@ -124,7 +124,7 @@ async def send_message(
                     if not chunk:
                         continue
 
-                    content = ""
+                    # 切片处理
                     chunk = unfinished_chunk + chunk
                     try:
                         data : dict[str, str | int | None] = json.loads(chunk)
@@ -133,6 +133,7 @@ async def send_message(
                         continue
                     
                     unfinished_chunk = b""
+                    content = ""
                     if data["reasoningContent"]:
                         if not is_reasoning:
                             is_reasoning = True
